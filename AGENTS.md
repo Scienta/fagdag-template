@@ -6,8 +6,12 @@ how you work is your team's call, and your own instructions go in `.claude/rules
 
 ## Source of truth
 
-- **The deploy contract** (below, in full in the README's organiser section) and **the feature specs
-  on the harness**. Specs don't change during the game.
+- **The deploy contract** (below, in full in the README's organiser section), **the base specs**
+  (talks, speakers, ratings) and **the feature requests** for the drip features, all on the harness.
+  They don't change during the game.
+- **A feature request isn't a spec.** It gives the business rules and the API surface, not status
+  codes, edge cases or error handling. The team decides those and writes them down; a person on the
+  team can ask the organisers' product owner about business rules.
 - **Agents can't claim features.** A person on the team claims with a button on the harness, and a
   claim is permanent. Never tell anyone a feature is done without evidence they can check.
 - The game rules (scoring, conduct) are on the printed rules sheet, not here.
@@ -18,10 +22,14 @@ how you work is your team's call, and your own instructions go in `.claude/rules
   Testcontainers, so Docker must be running.
 - Run locally: `docker compose up -d` (Postgres on `localhost:5432`, database, user and password
   `cfp`), then `java -jar target/cfp.jar` (port 8080).
-- Published examples: `examples/run.sh [base-url]` (default `http://localhost:8080`; needs Hurl).
-  The happy path only, not what the harness checks.
+- Examples: `examples/run.sh [base-url]` (default `http://localhost:8080`; needs Hurl) runs every
+  `examples/*.hurl`. It ships with the base features' happy paths only, not what the harness checks.
+  Drip features have no published examples: write your own.
 - Deployed service: the `TEAM_URL` repo variable, `https://fagsem-h2026-<team>.scienta.cloud`.
-- Logs: `.github/fagdag/logs.sh --tail 200 --since 2026-11-06T13:00:00Z`.
+- Logs: `.github/fagdag/logs.sh --tail 200 --since 2026-11-06T13:00:00Z` (the deployed container's
+  stdout, from Scaleway Cockpit). **The base app doesn't log requests**, so as shipped the harness's
+  traffic barely shows up. Adding request logging (method, path, status, maybe bodies) is allowed and
+  is the main way to see what the checks send.
 - Harness API: the URL is in `.fagdag/harness-url`, the team slug in `.fagdag/team`, and the team
   token in `.fagdag/harness-token` (a person pastes it from the harness feedback page; it's
   gitignored, never commit it or print it). Feature slugs are on the harness `/roadmap`.
@@ -29,13 +37,14 @@ how you work is your team's call, and your own instructions go in `.claude/rules
   ```bash
   H=$(cat .fagdag/harness-url) TEAM=$(cat .fagdag/team) TOKEN=$(cat .fagdag/harness-token)
   curl -fsS -H "Authorization: Bearer $TOKEN" "$H/specs/<feature>/spec.md"
-  curl -fsS -H "Authorization: Bearer $TOKEN" "$H/specs/<feature>/examples.hurl"
   curl -fsS -H "Authorization: Bearer $TOKEN" "$H/api/teams/$TEAM/feedback"
   curl -fsS -H "Authorization: Bearer $TOKEN" "$H/api/teams/$TEAM/feedback/timeline?check=<feature>/<check>"
   ```
 
   Rate-limited (bursts of 5, then 1 request/s; `429` with `Retry-After`). A spec is `404` until
-  its release.
+  its release. Checks have opaque names (`<feature>/check-3`). A FAULTY check gives the request it
+  failed on (method and templated path, not what it expected) and a `transcript`: the requests of its
+  latest faulty run and what this service answered.
 
 ## Deploy contract (push to `main` deploys)
 

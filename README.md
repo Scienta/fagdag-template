@@ -12,14 +12,17 @@ rules sheet. Your team slug is in `.fagdag/team`. In the first minutes:
    watch the **deploy** workflow in the Actions tab go green. Your service is at `TEAM_URL`,
    `https://fagsem-h2026-<team>.scienta.cloud`.
 4. **Run the examples** against it: `examples/run.sh https://fagsem-h2026-<team>.scienta.cloud`.
-5. **Fetch a spec.** The slugs are on `/roadmap`. Save a spec's examples in `examples/` and
-   `run.sh` picks them up:
+5. **Fetch a spec.** The slugs are on `/roadmap`. The base features have precise specs; the drip
+   features come as feature requests, and you write the spec and the tests. Hurl files you add to
+   `examples/` are picked up by `run.sh`:
 
    ```bash
    H=$(cat .fagdag/harness-url) TOKEN=$(cat .fagdag/harness-token)
    curl -fsS -H "Authorization: Bearer $TOKEN" "$H/specs/speakers/spec.md"
-   curl -fsS -H "Authorization: Bearer $TOKEN" -o examples/<feature>.hurl "$H/specs/<feature>/examples.hurl"
    ```
+
+   **Add request logging early.** The base app logs no requests. The checks' traffic is your best
+   debugging aid, next to the transcripts on `/feedback`. Read the logs with `.github/fagdag/logs.sh`.
 
 6. **Set up your workflow.** Start `REVIEW.md` now and keep it as a running log. `AGENTS.md` has the
    facts agents need (contract, commands, gotchas), and `CLAUDE.md` imports it: keep that line, and
